@@ -8,90 +8,95 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemTool;
-import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
-@Mod(modid = RightClickTorch.MODID, name= RightClickTorch.MODID)
-public class RightClickTorch {
+@Mod(modid = RightClickTorch.MODID, name = RightClickTorch.MODID)
+public class RightClickTorch
+{
 
-    public static final String MODID = "RightClickTorch";
-    private static final int NOTORCHESFOUND = -1;
-    private boolean processingEvent = false;
+	public static final String MODID = "RightClickTorch";
+	private static final int NOTORCHESFOUND = -1;
+	private boolean processingEvent = false;
 
-    @Mod.Instance(MODID)
-    public static RightClickTorch instance;
+	@Mod.Instance(MODID)
+	public static RightClickTorch instance;
 
-    public RightClickTorch(){
-        MinecraftForge.EVENT_BUS.register(this);
-    }
 
-    @Mod.EventHandler
-    public void preInit(FMLPreInitializationEvent event){
-    }
+	public RightClickTorch()
+	{
+		MinecraftForge.EVENT_BUS.register(this);
+	}
 
-    @SubscribeEvent
-    public void playerInteractEventHandler(PlayerInteractEvent event){
 
-        if (processingEvent | eventNotRelevant(event))
-            return;
+	@Mod.EventHandler
+	public void preInit(FMLPreInitializationEvent event)
+	{
+	}
 
-        ItemStack itemInHand = event.entityPlayer.inventory.getCurrentItem();
 
-        if (notHoldingTool(itemInHand))
-            return;
+	@SubscribeEvent
+	public void playerInteractEventHandler(PlayerInteractEvent event)
+	{
 
-        InventoryPlayer inventory = event.entityPlayer.inventory;
-        int torchSlotIndex = getTorchSlotIndex(inventory);
+		if (processingEvent | eventNotRelevant(event))
+			return;
 
-        if (torchSlotIndex == NOTORCHESFOUND)
-            return;
+		ItemStack itemInHand = event.entityPlayer.inventory.getCurrentItem();
 
-        processingEvent = true;
-        ItemStack torchStack = inventory.getStackInSlot(torchSlotIndex);
+		if (notHoldingTool(itemInHand))
+			return;
 
-        useItem(event, torchStack);
-	    torchStack = clearZeroSizedStack(torchStack);
-	    torchSlotIndex = sanitiseTorchSlotIndex(torchSlotIndex);
-	    refreshPlayerInventory(event, torchSlotIndex, torchStack);
-	    processingEvent = false;
-	    event.setCanceled(true);
-    }
+		InventoryPlayer inventory = event.entityPlayer.inventory;
+		int mainInventoryTorchSlotIndex = getTorchSlotIndex(inventory.mainInventory);
 
-	private ItemStack clearZeroSizedStack(ItemStack torchStack) {
+		if (mainInventoryTorchSlotIndex == NOTORCHESFOUND)
+			return;
+
+		processingEvent = true;
+		ItemStack torchStack = inventory.mainInventory[mainInventoryTorchSlotIndex];
+		useItem(event, torchStack);
+
 		if (torchStack.stackSize == 0)
-			torchStack = null;
-		return torchStack;
+			inventory.mainInventory[mainInventoryTorchSlotIndex] = null;
+
+		event.entityPlayer.openContainer.detectAndSendChanges();
+		processingEvent = false;
+		event.setCanceled(true);
 	}
 
-	private int sanitiseTorchSlotIndex(int torchSlotIndex) {
-		if (torchSlotIndex < 9)
-			torchSlotIndex += 36;
-		return torchSlotIndex;
+
+	private void useItem(PlayerInteractEvent event, ItemStack torchStack)
+	{
+		((EntityPlayerMP) event.entityPlayer).theItemInWorldManager
+				.activateBlockOrUseItem(event.entityPlayer, event.world, torchStack, event.x, event.y, event.z,
+						event.face, 0.5f, 0.5f, 0.5f);
 	}
 
-	private void refreshPlayerInventory(PlayerInteractEvent event, int torchSlotIndex, ItemStack torchStack) {
-		((EntityPlayerMP) event.entityPlayer).playerNetServerHandler.sendPacket(new S2FPacketSetSlot(event.entityPlayer.openContainer.windowId, torchSlotIndex, torchStack));
+
+	private boolean eventNotRelevant(PlayerInteractEvent event)
+	{
+		return event
+				.isCanceled() || event.world.isRemote || event.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK;
 	}
 
-	private void useItem(PlayerInteractEvent event, ItemStack torchStack){
-        ((EntityPlayerMP) event.entityPlayer).theItemInWorldManager.activateBlockOrUseItem(event.entityPlayer, event.world, torchStack, event.x, event.y, event.z, event.face, 0.5f, 0.5f, 0.5f);
-    }
 
-    private boolean eventNotRelevant(PlayerInteractEvent event){
-	    return event.isCanceled() || event.world.isRemote || event.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK;
-    }
+	private boolean notHoldingTool(ItemStack itemInHand)
+	{
+		return itemInHand == null || !(itemInHand.getItem() instanceof ItemTool);
+	}
 
-    private boolean notHoldingTool(ItemStack itemInHand){
-	    return itemInHand == null || !(itemInHand.getItem() instanceof ItemTool);
-    }
 
-    private int getTorchSlotIndex(InventoryPlayer inventory){
-        for (int index = 0; index < inventory.mainInventory.length; index++){
-            if (inventory.mainInventory[index] != null && inventory.mainInventory[index].getItem() == net.minecraft.item.Item.getItemFromBlock(Blocks.torch))
-                return index;
-        }
-        return -1;
-    }
+	private int getTorchSlotIndex(ItemStack[] itemStacks)
+	{
+		for (int index = 0; index < itemStacks.length; index++)
+		{
+			if (itemStacks[index] != null && itemStacks[index].getItem() == net.minecraft.item.Item
+					.getItemFromBlock(Blocks.torch))
+				return index;
+		}
+		return NOTORCHESFOUND;
+	}
+
 
 }
