@@ -3,6 +3,7 @@ package org.walterweight.rightclicktorch;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
@@ -53,6 +54,9 @@ public class RightClickTorch
 		if (mainInventoryTorchSlotIndex == NOTORCHESFOUND)
 			return;
 
+		if (!targetBlockAcceptsTorches(event))
+			return;
+
 		processingEvent = true;
 		ItemStack torchStack = inventory.mainInventory[mainInventoryTorchSlotIndex];
 		useItem(event, torchStack);
@@ -71,6 +75,15 @@ public class RightClickTorch
 		((EntityPlayerMP) event.entityPlayer).theItemInWorldManager
 				.activateBlockOrUseItem(event.entityPlayer, event.world, torchStack, event.x, event.y, event.z,
 						event.face, 0.5f, 0.5f, 0.5f);
+	}
+
+
+	private boolean targetBlockAcceptsTorches(PlayerInteractEvent event)
+	{
+		// Unless I'm having a serious brain fart, it seems that .canPlaceTorchOnTop() should be a static method from the Block class
+		Block block = event.world.getBlock(event.x, event.y, event.z);
+		return block.canPlaceTorchOnTop(event.world, event.x, event.y, event.z);
+
 	}
 
 
