@@ -1,0 +1,11 @@
+[
+{
+    "modid": "RightClickTorch",
+    "name": "RightClickTorch",
+    "description": "Easily place a torch from your inventory",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "https://github.com/BinaryCrafter/RightClickTorch",
+    "authors": ["BinaryCrafter"]
+}
+]
