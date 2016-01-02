@@ -1,8 +1,5 @@
 package uk.binarycraft.rightclicktorch;
 
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -11,17 +8,19 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemTool;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @Mod(modid = RightClickTorch.MODID, name = RightClickTorch.MODID)
 public class RightClickTorch
 {
 
-	public static final String MODID = "RightClickTorch";
+	public static final String MODID = "rightclicktorch";
 	private static final int NOTORCHESFOUND = -1;
-	private boolean processingEvent = false;
-
 	@Mod.Instance(MODID)
 	public static RightClickTorch instance;
+	private boolean processingEvent = false;
 
 
 	public RightClickTorch()
